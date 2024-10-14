@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Training Survey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div id="survey-container" class="max-w-md mx-auto mt-10 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <h1 class="text-2xl font-bold mb-4">AI Training Survey</h1>
+        <div id="question-container"></div>
+        <button id="next-btn" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Next</button>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                id: 'role',
+                text: 'What is your primary role?',
+                type: 'radio',
+                options: ['Business Leader/Stakeholder', 'Developer', 'Data Analyst', 'Machine Learning Engineer', 'Data Scientist', 'Data Engineer', 'AI/GenAI Specialist', 'Cybersecurity Professional', 'Other']
+            },
+            {
+                id: 'aiKnowledge',
+                text: 'What is your current level of AI knowledge?',
+                type: 'radio',
+                options: ['Beginner (little to no knowledge)', 'Intermediate (some understanding and experience)', 'Advanced (extensive knowledge and experience)']
+            },
+            {
+                id: 'cloudPlatforms',
+                text: 'Which cloud platform(s) are you most interested in or currently using?',
+                type: 'checkbox',
+                options: ['Google Cloud', 'Microsoft Azure', 'AWS', 'Not specific to any cloud platform']
+            },
+            {
+                id: 'goals',
+                text: 'What are your primary goals for AI training?',
+                type: 'checkbox',
+                options: ['Understanding AI fundamentals', 'Developing AI applications', 'Implementing AI in business operations', 'Data analysis and visualization', 'Machine learning and deep learning', 'Natural Language Processing (NLP)', 'Computer Vision', 'AI security and ethics', 'AI project management', 'Other']
+            },
+            {
+                id: 'languages',
+                text: 'Which programming languages are you most comfortable with or interested in learning?',
+                type: 'checkbox',
+                options: ['Python', 'R', 'Java', 'Scala', 'No programming experience', 'Other']
+            },
+            {
+                id: 'technologies',
+                text: 'Are you interested in any specific AI technologies or frameworks?',
+                type: 'checkbox',
+                options: ['TensorFlow', 'PyTorch', 'Scikit-learn', 'OpenAI (e.g., GPT models)', 'Dialogflow', 'Vertex AI', 'Azure Cognitive Services', 'Other']
+            },
+            {
+                id: 'industry',
+                text: 'What industry sector do you work in?',
+                type: 'radio',
+                options: ['Technology', 'Finance', 'Healthcare', 'Education', 'Manufacturing', 'Retail', 'Government', 'Other']
+            },
+            {
+                id: 'time',
+                text: 'How much time can you dedicate to AI training?',
+                type: 'radio',
+                options: ['A few hours per week', '1-2 full days', '3-5 full days', 'More than a week']
+            },
+            {
+                id: 'applications',
+                text: 'Are you interested in any specific AI applications?',
+                type: 'checkbox',
+                options: ['Chatbots and conversational AI', 'Predictive analytics', 'Recommendation systems', 'Anomaly detection', 'Image and video analysis', 'Text analysis and generation', 'Robotic Process Automation (RPA)', 'Other']
+            },
+            {
+                id: 'challenges',
+                text: 'Are there any specific challenges or use cases you\'re looking to address with AI in your organization?',
+                type: 'text'
+            }
+        ];
+
+        let currentQuestion = 0;
+        const answers = {};
+
+        const questionContainer = document.getElementById('question-container');
+        const nextButton = document.getElementById('next-btn');
+
+        function renderQuestion(question) {
+            questionContainer.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4">${question.text}</h2>
+                ${getQuestionHTML(question)}
+            `;
+
+            if (question.type === 'radio' || question.type === 'checkbox') {
+                const options = questionContainer.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+                options.forEach(option => {
+                    option.addEventListener('change', () => {
+                        if (option.value === 'Other') {
+                            const otherInput = questionContainer.querySelector(`#${question.id}-other`);
+                            otherInput.style.display = option.checked ? 'block' : 'none';
+                        }
+                        updateNextButtonState();
+                    });
+                });
+            }
+
+            if (question.type === 'text') {
+                const textArea = questionContainer.querySelector('textarea');
+                textArea.addEventListener('input', updateNextButtonState);
+            }
+
+            updateNextButtonState();
+        }
+
+        function getQuestionHTML(question) {
+            switch (question.type) {
+                case 'radio':
+                    return question.options.map(option => `
+                        <div class="mb-2">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="${question.id}" value="${option}" class="form-radio">
+                                <span class="ml-2">${option}</span>
+                            </label>
+                            ${option === 'Other' ? `<input type="text" id="${question.id}-other" class="mt-2 form-input w-full hidden" placeholder="Please specify">` : ''}
+                        </div>
+                    `).join('');
+                case 'checkbox':
+                    return question.options.map(option => `
+                        <div class="mb-2">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="${question.id}" value="${option}" class="form-checkbox">
+                                <span class="ml-2">${option}</span>
+                            </label>
+                            ${option === 'Other' ? `<input type="text" id="${question.id}-other" class="mt-2 form-input w-full hidden" placeholder="Please specify">` : ''}
+                        </div>
+                    `).join('');
+                case 'text':
+                    return `<textarea id="${question.id}" class="form-textarea mt-1 block w-full" rows="3" placeholder="Enter your response here"></textarea>`;
+                default:
+                    return '';
+            }
+        }
+
+        function updateNextButtonState() {
+            const currentQuestionData = questions[currentQuestion];
+            let isAnswered = false;
+
+            if (currentQuestionData.type === 'radio') {
+                isAnswered = questionContainer.querySelector('input[type="radio"]:checked') !== null;
+            } else if (currentQuestionData.type === 'checkbox') {
+                isAnswered = questionContainer.querySelector('input[type="checkbox"]:checked') !== null;
+            } else if (currentQuestionData.type === 'text') {
+                isAnswered = questionContainer.querySelector('textarea').value.trim() !== '';
+            }
+
+            nextButton.disabled = !isAnswered;
+            nextButton.classList.toggle('opacity-50', !isAnswered);
+            nextButton.classList.toggle('cursor-not-allowed', !isAnswered);
+        }
+
+        function saveAnswer() {
+            const currentQuestionData = questions[currentQuestion];
+            if (currentQuestionData.type === 'radio') {
+                const selectedOption = questionContainer.querySelector('input[type="radio"]:checked');
+                if (selectedOption) {
+                    answers[currentQuestionData.id] = selectedOption.value;
+                    if (selectedOption.value === 'Other') {
+                        answers[`${currentQuestionData.id}Other`] = questionContainer.querySelector(`#${currentQuestionData.id}-other`).value;
+                    }
+                }
+            } else if (currentQuestionData.type === 'checkbox') {
+                const selectedOptions = Array.from(questionContainer.querySelectorAll('input[type="checkbox"]:checked')).map(option => option.value);
+                answers[currentQuestionData.id] = selectedOptions;
+                if (selectedOptions.includes('Other')) {
+                    answers[`${currentQuestionData.id}Other`] = questionContainer.querySelector(`#${currentQuestionData.id}-other`).value;
+                }
+            } else if (currentQuestionData.type === 'text') {
+                answers[currentQuestionData.id] = questionContainer.querySelector('textarea').value;
+            }
+        }
+
+        function showLoadingScreen() {
+            questionContainer.innerHTML = `
+                <div class="flex items-center justify-center">
+                    <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+                <p class="text-center mt-4">Submitting your survey responses...</p>
+            `;
+            nextButton.style.display = 'none';
+        }
+
+        function showResults(result) {
+            questionContainer.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4">Survey Results</h2>
+                <pre class="bg-gray-100 p-4 rounded overflow-x-auto">${JSON.stringify(result, null, 2)}</pre>
+            `;
+            nextButton.style.display = 'none';
+        }
+
+        async function submitSurvey() {
+            showLoadingScreen();
+            try {
+                // Replace with your actual API endpoint
+                const response = await fetch('https://api.example.com/survey', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(answers)
+                });
+                const result = await response.json();
+                showResults(result);
+            } catch (error) {
+                console.error('Error submitting survey:', error);
+                showResults({ error: 'An error occurred while submitting the survey.' });
+            }
+        }
+
+        nextButton.addEventListener('click', () => {
+            saveAnswer();
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion(questions[currentQuestion]);
+            } else {
+                submitSurvey();
+            }
+        });
+
+        renderQuestion(questions[currentQuestion]);
+    </script>
+</body>
+</html>
