@@ -25,7 +25,7 @@
                 left: 0;
                 top: 0;
             }
-            #print-btn {
+            #print-btn, #done-btn {
                 display: none;
             }
         }
@@ -66,6 +66,7 @@
         </div>
         <div id="question-container"></div>
         <button id="next-btn" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Next</button>
+        <button id="done-btn" class="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded hidden">I'm Done</button>
         <button id="print-btn" class="mt-4 ml-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded hidden">Print</button>
     </div>
 
@@ -87,7 +88,7 @@
                 id: 'cloudPlatforms',
                 text: 'Which cloud platform(s) are you most interested in or currently using?',
                 type: 'checkbox',
-                options: ['Google Cloud', 'Microsoft Azure', 'AWS', 'Not specific to any cloud platform']
+                options: ['Google Cloud', 'Microsoft Azure', 'AWS', 'Not specific to any cloud platform', 'Other']
             },
             {
                 id: 'goals',
@@ -130,7 +131,8 @@
             {
                 id: 'challenges',
                 text: 'Are there any specific challenges or use cases you\'re looking to address with AI in your organization?',
-                type: 'text'
+                type: 'yesno',
+                followUpType: 'text'
             }
         ];
 
@@ -139,6 +141,7 @@
 
         const questionContainer = document.getElementById('question-container');
         const nextButton = document.getElementById('next-btn');
+        const doneButton = document.getElementById('done-btn');
         const printButton = document.getElementById('print-btn');
         const customerInfoDiv = document.getElementById('customer-info');
         const progressBar = document.getElementById('progress-bar');
@@ -182,6 +185,11 @@
                             updateNextButtonState();
                         });
                     });
+                } else if (question.followUpType === 'text') {
+                    const textArea = questionContainer.querySelector('textarea');
+                    if (textArea) {
+                        textArea.addEventListener('input', updateNextButtonState);
+                    }
                 }
             }
 
@@ -240,6 +248,7 @@
                                     ${option === 'Other' ? `<input type="text" id="${question.id}-other" class="mt-2 form-input w-full hidden" placeholder="Please specify">` : ''}
                                 </div>
                             `).join('') : ''}
+                            ${question.followUpType === 'text' ? `<textarea id="${question.id}-followup" class="form-textarea mt-1 block w-full" rows="3" placeholder="Enter your response here"></textarea>` : ''}
                         </div>
                     `;
                 default:
@@ -270,7 +279,11 @@
                         if (yesNoAnswer.value === 'No') {
                             isAnswered = true;
                         } else {
-                            isAnswered = questionContainer.querySelector('input[type="checkbox"]:checked') !== null;
+                            if (currentQuestionData.followUpType === 'checkbox') {
+                                isAnswered = questionContainer.querySelector('input[type="checkbox"]:checked') !== null;
+                            } else if (currentQuestionData.followUpType === 'text') {
+                                isAnswered = questionContainer.querySelector('textarea').value.trim() !== '';
+                            }
                         }
                     }
                 }
@@ -317,10 +330,14 @@
                     if (yesNoAnswer) {
                         answers[currentQuestionData.id] = yesNoAnswer.value;
                         if (yesNoAnswer.value === 'Yes') {
-                            const selectedOptions = Array.from(questionContainer.querySelectorAll('input[type="checkbox"]:checked')).map(option => option.value);
-                            answers[`${currentQuestionData.id}Followup`] = selectedOptions;
-                            if (selectedOptions.includes('Other')) {
-                                answers[`${currentQuestionData.id}Other`] = questionContainer.querySelector(`#${currentQuestionData.id}-other`).value;
+                            if (currentQuestionData.followUpType === 'checkbox') {
+                                const selectedOptions = Array.from(questionContainer.querySelectorAll('input[type="checkbox"]:checked')).map(option => option.value);
+                                answers[`${currentQuestionData.id}Followup`] = selectedOptions;
+                                if (selectedOptions.includes('Other')) {
+                                    answers[`${currentQuestionData.id}Other`] = questionContainer.querySelector(`#${currentQuestionData.id}-other`).value;
+                                }
+                            } else if (currentQuestionData.followUpType === 'text') {
+                                answers[`${currentQuestionData.id}Followup`] = questionContainer.querySelector(`#${currentQuestionData.id}-followup`).value;
                             }
                         }
                     }
@@ -336,6 +353,7 @@
                 <p class="text-center mt-4">Submitting your survey responses...</p>
             `;
             nextButton.style.display = 'none';
+            doneButton.style.display = 'none';
             printButton.style.display = 'none';
         }
 
@@ -350,6 +368,7 @@
                 `;
                 document.getElementById('try-again-btn').addEventListener('click', resetSurvey);
                 nextButton.style.display = 'none';
+                doneButton.style.display = 'none';
                 printButton.style.display = 'inline-block';
             } catch (error) {
                 console.error('Error parsing result:', error);
@@ -360,6 +379,7 @@
                 `;
                 document.getElementById('try-again-btn').addEventListener('click', resetSurvey);
                 nextButton.style.display = 'none';
+                doneButton.style.display = 'none';
                 printButton.style.display = 'none';
             }
         }
@@ -390,6 +410,7 @@
             customerInfoDiv.style.display = 'block';
             progressBar.style.display = 'none';
             nextButton.style.display = 'block';
+            doneButton.style.display = 'none';
             printButton.style.display = 'none';
             document.getElementById('progress').style.width = '0%';
             ['name', 'company', 'email', 'phone'].forEach(id => {
@@ -408,9 +429,18 @@
                     progressBar.style.display = 'block';
                 }
                 renderQuestion(questions[currentQuestion]);
+                if (currentQuestion === questions.length - 1) {
+                    nextButton.style.display = 'none';
+                    doneButton.style.display = 'inline-block';
+                }
             } else {
                 submitSurvey();
             }
+        });
+
+        doneButton.addEventListener('click', () => {
+            saveAnswer();
+            submitSurvey();
         });
 
         printButton.addEventListener('click', () => {
@@ -422,6 +452,7 @@
         questionContainer.style.display = 'none';
         customerInfoDiv.style.display = 'block';
         progressBar.style.display = 'none';
+        doneButton.style.display = 'none';
         printButton.style.display = 'none';
 
         // Add event listeners to customer info inputs
