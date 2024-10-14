@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Categories</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6">Product Categories</h1>
+        <div id="categories" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+
+    <script>
+        async function fetchCategories() {
+            try {
+                const response = await fetch('https://www.fastlaneus.com/api/ProductCategories');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                return [];
+            }
+        }
+
+        function displayCategories(categories) {
+            const categoriesContainer = document.getElementById('categories');
+            categoriesContainer.innerHTML = '';
+
+            categories.forEach(category => {
+                const categoryElement = document.createElement('div');
+                categoryElement.className = 'bg-white p-4 rounded shadow';
+                categoryElement.innerHTML = `
+                    <h2 class="text-xl font-semibold mb-2">${category.name}</h2>
+                    <p class="text-gray-600">${category.description || 'No description available'}</p>
+                    <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="showSubcategories(${category.id})">View Subcategories</button>
+                `;
+                categoriesContainer.appendChild(categoryElement);
+            });
+        }
+
+        function showSubcategories(categoryId) {
+            // This function will be implemented to show subcategories
+            console.log('Show subcategories for category:', categoryId);
+            // You can fetch subcategories here and display them
+        }
+
+        async function init() {
+            const categories = await fetchCategories();
+            displayCategories(categories);
+        }
+
+        init();
+    </script>
+</body>
+</html>
