@@ -258,13 +258,17 @@
                 questionContainer.innerHTML = `
                     <h2 class="text-xl font-semibold mb-4">Survey Results</h2>
                     <div class="bg-gray-100 p-4 rounded overflow-x-auto markdown-content">${marked.parse(markdownContent)}</div>
+                    <button id="try-again-btn" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Try Again</button>
                 `;
+                document.getElementById('try-again-btn').addEventListener('click', resetSurvey);
             } catch (error) {
                 console.error('Error parsing result:', error);
                 questionContainer.innerHTML = `
                     <h2 class="text-xl font-semibold mb-4">Survey Results</h2>
                     <div class="bg-gray-100 p-4 rounded overflow-x-auto markdown-content">Error parsing results. Please try again.</div>
+                    <button id="try-again-btn" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Try Again</button>
                 `;
+                document.getElementById('try-again-btn').addEventListener('click', resetSurvey);
             }
             nextButton.style.display = 'none';
         }
@@ -286,6 +290,20 @@
                 console.error('Error submitting survey:', error);
                 showResults(JSON.stringify({text: `## Error\n\nAn error occurred while submitting the survey. Please try again later.\n\nError details: ${error.message}`}));
             }
+        }
+
+        function resetSurvey() {
+            currentQuestion = -1;
+            Object.keys(answers).forEach(key => delete answers[key]);
+            questionContainer.style.display = 'none';
+            customerInfoDiv.style.display = 'block';
+            progressBar.style.display = 'none';
+            nextButton.style.display = 'block';
+            document.getElementById('progress').style.width = '0%';
+            ['name', 'company', 'email', 'phone'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            updateNextButtonState();
         }
 
         nextButton.addEventListener('click', () => {
