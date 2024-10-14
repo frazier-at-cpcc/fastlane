@@ -13,6 +13,22 @@
         .markdown-content ul, .markdown-content ol { margin-left: 1.5em; margin-bottom: 1em; }
         .markdown-content li { margin-bottom: 0.5em; }
         .markdown-content p { margin-bottom: 1em; }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #survey-container, #survey-container * {
+                visibility: visible;
+            }
+            #survey-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            #print-btn {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -50,6 +66,7 @@
         </div>
         <div id="question-container"></div>
         <button id="next-btn" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Next</button>
+        <button id="print-btn" class="mt-4 ml-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded hidden">Print</button>
     </div>
 
     <script>
@@ -88,7 +105,7 @@
                 id: 'technologies',
                 text: 'Are you interested in any specific AI technologies or frameworks?',
                 type: 'checkbox',
-                options: ['TensorFlow', 'PyTorch', 'Scikit-learn', 'OpenAI (e.g., GPT models)', 'Dialogflow', 'Vertex AI', 'Azure Cognitive Services', 'Other']
+                options: ['TensorFlow', 'PyTorch', 'Scikit-learn', 'OpenAI (e.g., GPT models)', 'Dialogflow', 'Vertex AI', 'Azure Cognitive Services', 'No', 'Other']
             },
             {
                 id: 'industry',
@@ -106,7 +123,7 @@
                 id: 'applications',
                 text: 'Are you interested in any specific AI applications?',
                 type: 'checkbox',
-                options: ['Chatbots and conversational AI', 'Predictive analytics', 'Recommendation systems', 'Anomaly detection', 'Image and video analysis', 'Text analysis and generation', 'Robotic Process Automation (RPA)', 'Other']
+                options: ['Chatbots and conversational AI', 'Predictive analytics', 'Recommendation systems', 'Anomaly detection', 'Image and video analysis', 'Text analysis and generation', 'Robotic Process Automation (RPA)', 'No', 'Other']
             },
             {
                 id: 'challenges',
@@ -120,6 +137,7 @@
 
         const questionContainer = document.getElementById('question-container');
         const nextButton = document.getElementById('next-btn');
+        const printButton = document.getElementById('print-btn');
         const customerInfoDiv = document.getElementById('customer-info');
         const progressBar = document.getElementById('progress-bar');
         const progress = document.getElementById('progress');
@@ -249,6 +267,7 @@
                 <p class="text-center mt-4">Submitting your survey responses...</p>
             `;
             nextButton.style.display = 'none';
+            printButton.style.display = 'none';
         }
 
         function showResults(result) {
@@ -261,6 +280,8 @@
                     <button id="try-again-btn" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Try Again</button>
                 `;
                 document.getElementById('try-again-btn').addEventListener('click', resetSurvey);
+                nextButton.style.display = 'none';
+                printButton.style.display = 'inline-block';
             } catch (error) {
                 console.error('Error parsing result:', error);
                 questionContainer.innerHTML = `
@@ -269,8 +290,9 @@
                     <button id="try-again-btn" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Try Again</button>
                 `;
                 document.getElementById('try-again-btn').addEventListener('click', resetSurvey);
+                nextButton.style.display = 'none';
+                printButton.style.display = 'none';
             }
-            nextButton.style.display = 'none';
         }
 
         async function submitSurvey() {
@@ -299,6 +321,7 @@
             customerInfoDiv.style.display = 'block';
             progressBar.style.display = 'none';
             nextButton.style.display = 'block';
+            printButton.style.display = 'none';
             document.getElementById('progress').style.width = '0%';
             ['name', 'company', 'email', 'phone'].forEach(id => {
                 document.getElementById(id).value = '';
@@ -321,11 +344,16 @@
             }
         });
 
+        printButton.addEventListener('click', () => {
+            window.print();
+        });
+
         // Start with customer info
         currentQuestion = -1;
         questionContainer.style.display = 'none';
         customerInfoDiv.style.display = 'block';
         progressBar.style.display = 'none';
+        printButton.style.display = 'none';
 
         // Add event listeners to customer info inputs
         ['name', 'company', 'email', 'phone'].forEach(id => {
