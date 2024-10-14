@@ -104,8 +104,9 @@
             {
                 id: 'technologies',
                 text: 'Are you interested in any specific AI technologies or frameworks?',
-                type: 'checkbox',
-                options: ['TensorFlow', 'PyTorch', 'Scikit-learn', 'OpenAI (e.g., GPT models)', 'Dialogflow', 'Vertex AI', 'Azure Cognitive Services', 'No', 'Other']
+                type: 'yesno',
+                followUpType: 'checkbox',
+                options: ['TensorFlow', 'PyTorch', 'Scikit-learn', 'OpenAI (e.g., GPT models)', 'Dialogflow', 'Vertex AI', 'Azure Cognitive Services', 'Other']
             },
             {
                 id: 'industry',
@@ -122,8 +123,9 @@
             {
                 id: 'applications',
                 text: 'Are you interested in any specific AI applications?',
-                type: 'checkbox',
-                options: ['Chatbots and conversational AI', 'Predictive analytics', 'Recommendation systems', 'Anomaly detection', 'Image and video analysis', 'Text analysis and generation', 'Robotic Process Automation (RPA)', 'No', 'Other']
+                type: 'yesno',
+                followUpType: 'checkbox',
+                options: ['Chatbots and conversational AI', 'Predictive analytics', 'Recommendation systems', 'Anomaly detection', 'Image and video analysis', 'Text analysis and generation', 'Robotic Process Automation (RPA)', 'Other']
             },
             {
                 id: 'challenges',
@@ -159,6 +161,28 @@
                         updateNextButtonState();
                     });
                 });
+            } else if (question.type === 'yesno') {
+                const yesNoOptions = questionContainer.querySelectorAll('input[type="radio"]');
+                yesNoOptions.forEach(option => {
+                    option.addEventListener('change', () => {
+                        const followUpContainer = questionContainer.querySelector('#follow-up-container');
+                        followUpContainer.style.display = option.value === 'Yes' ? 'block' : 'none';
+                        updateNextButtonState();
+                    });
+                });
+
+                if (question.followUpType === 'checkbox') {
+                    const checkboxOptions = questionContainer.querySelectorAll('input[type="checkbox"]');
+                    checkboxOptions.forEach(option => {
+                        option.addEventListener('change', () => {
+                            if (option.value === 'Other') {
+                                const otherInput = questionContainer.querySelector(`#${question.id}-other`);
+                                otherInput.style.display = option.checked ? 'block' : 'none';
+                            }
+                            updateNextButtonState();
+                        });
+                    });
+                }
             }
 
             if (question.type === 'text') {
@@ -194,6 +218,30 @@
                     `).join('');
                 case 'text':
                     return `<textarea id="${question.id}" class="form-textarea mt-1 block w-full" rows="3" placeholder="Enter your response here"></textarea>`;
+                case 'yesno':
+                    return `
+                        <div class="mb-4">
+                            <label class="inline-flex items-center mr-4">
+                                <input type="radio" name="${question.id}" value="Yes" class="form-radio">
+                                <span class="ml-2">Yes</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="${question.id}" value="No" class="form-radio">
+                                <span class="ml-2">No</span>
+                            </label>
+                        </div>
+                        <div id="follow-up-container" class="hidden">
+                            ${question.followUpType === 'checkbox' ? question.options.map(option => `
+                                <div class="mb-2">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="${question.id}-followup" value="${option}" class="form-checkbox">
+                                        <span class="ml-2">${option}</span>
+                                    </label>
+                                    ${option === 'Other' ? `<input type="text" id="${question.id}-other" class="mt-2 form-input w-full hidden" placeholder="Please specify">` : ''}
+                                </div>
+                            `).join('') : ''}
+                        </div>
+                    `;
                 default:
                     return '';
             }
@@ -216,6 +264,15 @@
                     isAnswered = questionContainer.querySelector('input[type="checkbox"]:checked') !== null;
                 } else if (currentQuestionData.type === 'text') {
                     isAnswered = questionContainer.querySelector('textarea').value.trim() !== '';
+                } else if (currentQuestionData.type === 'yesno') {
+                    const yesNoAnswer = questionContainer.querySelector('input[type="radio"]:checked');
+                    if (yesNoAnswer) {
+                        if (yesNoAnswer.value === 'No') {
+                            isAnswered = true;
+                        } else {
+                            isAnswered = questionContainer.querySelector('input[type="checkbox"]:checked') !== null;
+                        }
+                    }
                 }
 
                 nextButton.disabled = !isAnswered;
@@ -255,6 +312,18 @@
                     }
                 } else if (currentQuestionData.type === 'text') {
                     answers[currentQuestionData.id] = questionContainer.querySelector('textarea').value;
+                } else if (currentQuestionData.type === 'yesno') {
+                    const yesNoAnswer = questionContainer.querySelector('input[type="radio"]:checked');
+                    if (yesNoAnswer) {
+                        answers[currentQuestionData.id] = yesNoAnswer.value;
+                        if (yesNoAnswer.value === 'Yes') {
+                            const selectedOptions = Array.from(questionContainer.querySelectorAll('input[type="checkbox"]:checked')).map(option => option.value);
+                            answers[`${currentQuestionData.id}Followup`] = selectedOptions;
+                            if (selectedOptions.includes('Other')) {
+                                answers[`${currentQuestionData.id}Other`] = questionContainer.querySelector(`#${currentQuestionData.id}-other`).value;
+                            }
+                        }
+                    }
                 }
             }
         }
