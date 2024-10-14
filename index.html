@@ -361,6 +361,11 @@
             try {
                 const parsedResult = JSON.parse(result);
                 const markdownContent = parsedResult.text || 'No content available';
+                
+                // Set progress bar to 100%
+                progressBar.style.display = 'block';
+                document.getElementById('progress').style.width = '100%';
+                
                 questionContainer.innerHTML = `
                     <h2 class="text-xl font-semibold mb-4">Survey Results</h2>
                     <div class="bg-gray-100 p-4 rounded overflow-x-auto markdown-content">${marked.parse(markdownContent)}</div>
