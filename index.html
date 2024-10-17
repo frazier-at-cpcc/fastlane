@@ -7,6 +7,33 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        @font-face {
+            font-family: 'URWGothic';
+            src: url('fonts/URWGothic-Book.WOFF') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'URWGothic';
+            src: url('fonts/URWGothic-BookOblique.WOFF') format('woff');
+            font-weight: normal;
+            font-style: italic;
+        }
+        @font-face {
+            font-family: 'URWGothic';
+            src: url('fonts/URWGothic-Demi.WOFF') format('woff');
+            font-weight: bold;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'URWGothic';
+            src: url('fonts/URWGothic-DemiOblique.WOFF') format('woff');
+            font-weight: bold;
+            font-style: italic;
+        }
+        body {
+            font-family: 'URWGothic', sans-serif;
+        }
         .markdown-content h1, .markdown-content h2 { margin-top: 1em; margin-bottom: 0.5em; font-weight: bold; }
         .markdown-content h1 { font-size: 1.5em; }
         .markdown-content h2 { font-size: 1.3em; }
@@ -33,9 +60,10 @@
 </head>
 <body class="bg-gray-100">
     <div id="survey-container" class="max-w-md mx-auto mt-10 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <h1 class="text-2xl font-bold mb-4">Fast Lane AI Training Tool</h1>
+        <img src="logo.png" alt="Logo" class="mb-4 mx-auto" style="max-height: 100px;">
+        <h1 class="text-2xl font-bold mb-4">Fast Lane AI Training Needs Assessment</h1>
         <div id="progress-bar" class="w-full bg-gray-200 rounded-full h-2.5 mb-4 hidden">
-            <div id="progress" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+            <div id="progress" class="bg-red-600 h-2.5 rounded-full" style="width: 0%"></div>
         </div>
         <div id="customer-info" class="mb-6">
             <h2 class="text-xl font-semibold mb-4">Customer Information</h2>
@@ -65,8 +93,8 @@
             </div>
         </div>
         <div id="question-container"></div>
-        <button id="next-btn" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Next</button>
-        <button id="done-btn" class="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded hidden">I'm Done</button>
+        <button id="next-btn" class="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Next</button>
+        <button id="done-btn" class="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded hidden">I'm Done</button>
         <button id="print-btn" class="mt-4 ml-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded hidden">Print</button>
     </div>
 
@@ -348,7 +376,7 @@
         function showLoadingScreen() {
             questionContainer.innerHTML = `
                 <div class="flex items-center justify-center">
-                    <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+                    <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-500"></div>
                 </div>
                 <p class="text-center mt-4">Submitting your survey responses...</p>
             `;
@@ -369,7 +397,7 @@
                 questionContainer.innerHTML = `
                     <h2 class="text-xl font-semibold mb-4">Survey Results</h2>
                     <div class="bg-gray-100 p-4 rounded overflow-x-auto markdown-content">${marked.parse(markdownContent)}</div>
-                    <button id="try-again-btn" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Try Again</button>
+                    <button id="try-again-btn" class="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Try Again</button>
                 `;
                 document.getElementById('try-again-btn').addEventListener('click', resetSurvey);
                 nextButton.style.display = 'none';
@@ -380,7 +408,7 @@
                 questionContainer.innerHTML = `
                     <h2 class="text-xl font-semibold mb-4">Survey Results</h2>
                     <div class="bg-gray-100 p-4 rounded overflow-x-auto markdown-content">Error parsing results. Please try again.</div>
-                    <button id="try-again-btn" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Try Again</button>
+                    <button id="try-again-btn" class="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Try Again</button>
                 `;
                 document.getElementById('try-again-btn').addEventListener('click', resetSurvey);
                 nextButton.style.display = 'none';
